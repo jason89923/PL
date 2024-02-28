@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OurC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/xterm/css/xterm.css" />
+    <script src="https://unpkg.com/xterm/lib/xterm.js"></script>
+    <script src="https://unpkg.com/xterm-addon-attach/lib/xterm-addon-attach.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #terminal {
+            width: 100%;
+            max-width: 800px; /* 最大寬度，確保在大屏幕上不會過寬 */
+            height: 400px; /* 固定高度，或根據需要調整 */
+        }
+        @media (max-width: 600px) {
+            #terminal {
+                height: 300px; /* 小屏幕上調整終端的高度 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>OurC-Project-<%= project %></h1>
+    <div id="terminal"></div>
+
+    <script>
+        var term = new Terminal();
+        term.open(document.getElementById('terminal'));
+
+        var wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        var wsHost = window.location.host;
+        var wsPath = "ws";
+        var socketUrl = wsProtocol + '//' + wsHost + '/' + wsPath;
+
+        console.log(socketUrl);
+        var socket = new WebSocket(socketUrl);
+
+        socket.onopen = function(event) {
+            socket.send(JSON.stringify({ "project": "<%= project %>" }));
+        };
+
+        socket.onclose = function(event) {
+            window.location.href = "/";
+        };
+
+        var attachAddon = new AttachAddon.AttachAddon(socket);
+        term.loadAddon(attachAddon);
+
+        window.onbeforeunload = function() {
+            socket.close();
+        };
+
+        // 可選：根據窗口大小動態調整xterm的尺寸
+        window.addEventListener('resize', function() {
+            // 在這裡實現根據視窗大小調整終端尺寸的邏輯
+            // term.fit(); // 假設使用了fit插件
+        });
+    </script>
+</body>
+</html>
